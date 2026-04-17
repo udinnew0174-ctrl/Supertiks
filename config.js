@@ -1,9 +1,9 @@
-// config.js - Konfigurasi endpoint dan pengaturan aplikasi
+// config.js - Konfigurasi endpoint API dan pengaturan aplikasi
 const CONFIG = {
-    // Endpoint API download (sesuaikan dengan environment Anda)
+    // Endpoint API download (handler Next.js Anda)
     API_ENDPOINT: '/api/download',
     
-    // Batas waktu request (ms)
+    // Batas waktu request dalam milidetik (30 detik)
     REQUEST_TIMEOUT: 30000,
     
     // Opsi fetch default
@@ -15,5 +15,5 @@ const CONFIG = {
     }
 };
 
-// Jangan diubah, hanya untuk referensi global
+// Ekspos ke global scope
 window.APP_CONFIG = CONFIG;
