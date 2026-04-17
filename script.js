@@ -1,4 +1,4 @@
-// script.js - Main Application Logic (TikWM API langsung)
+// script.js - Main Application Logic (Optimized Download)
 
 // DOM Elements
 const elements = {
@@ -113,7 +113,7 @@ async function fetchTikTokData(url) {
             throw new Error('Request timeout. Server terlalu lama merespons.');
         }
         
-        // Jika API gagal, fallback ke mock data (opsional)
+        // Fallback ke mock data jika API gagal
         console.warn('API failed, using mock data');
         return getMockVideoData(url);
     }
@@ -125,12 +125,12 @@ function getMockVideoData(url) {
         code: 0,
         data: {
             title: "Video TikTok Demo - Mode Offline",
-            cover: "https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+            cover: "https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
             author: {
                 nickname: "@tiktok_user"
             },
-            play: url, // Use original URL as fallback
-            music: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Sample audio
+            play: url,
+            music: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         }
     };
     
@@ -140,25 +140,28 @@ function getMockVideoData(url) {
 
 // Render video data to UI
 function renderVideoData(data) {
-    elements.thumbImg.src = data.cover || 'https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+    elements.thumbImg.src = data.cover || 'https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?w=800&auto=format';
     elements.titleTxt.textContent = data.title || 'Video TikTok';
     elements.authorTxt.textContent = data.author?.nickname || '@user';
     
-    // FIX: Bind event dengan fungsi wrapper yang menerima event
+    // Bind event dengan pencegahan zoom
     elements.btnDownloadNoWm.onclick = (e) => {
-        e.preventDefault(); // Cegah zoom / default action
-        downloadFile(data.play || data.wmplay || data.hdplay, sanitizeFilename(data.title || 'tiktok_video') + '.mp4', e);
+        e.preventDefault();
+        const url = data.play || data.wmplay || data.hdplay;
+        const filename = sanitizeFilename(data.title || 'tiktok_video') + '.mp4';
+        downloadWithTimeout(url, filename, e);
     };
     
     elements.btnDownloadAudio.onclick = (e) => {
         e.preventDefault();
-        downloadFile(data.music, sanitizeFilename(data.title || 'tiktok_audio') + '.mp3', e);
+        const url = data.music;
+        const filename = sanitizeFilename(data.title || 'tiktok_audio') + '.mp3';
+        downloadWithTimeout(url, filename, e);
     };
 }
 
-// FIX: Tambahkan parameter event dan preventDefault di awal
-async function downloadFile(url, filename, event) {
-    // Cegah perilaku default (zoom, navigasi, dll)
+// Fungsi download dengan timeout 8 detik
+async function downloadWithTimeout(url, filename, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -169,45 +172,46 @@ async function downloadFile(url, filename, event) {
         return;
     }
     
-    // FIX: Dapatkan tombol dari event.target
-    const button = event ? event.target.closest('button') : null;
-    const originalText = button ? button.innerHTML : '';
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MENYIAPKAN...';
+    button.disabled = true;
     
-    if (button) {
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
-        button.disabled = true;
-    }
+    addLogEntry('Download', `Memulai: ${filename}`);
     
-    addLogEntry('Download', `Memulai download: ${filename}`);
+    // Buat promise dengan timeout 8 detik
+    const downloadPromise = fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Gagal fetch');
+            return response.blob();
+        })
+        .then(blob => {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+            return true;
+        });
+    
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('TIMEOUT')), 8000); // 8 detik
+    });
     
     try {
-        // Coba fetch sebagai blob agar bisa download langsung dengan nama kustom
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Gagal mengunduh file');
-        
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-        
-        addLogEntry('Success', `Berhasil mendownload: ${filename}`);
+        await Promise.race([downloadPromise, timeoutPromise]);
+        addLogEntry('Success', `Berhasil: ${filename}`);
     } catch (error) {
-        console.error('Download error:', error);
-        // Fallback: buka di tab baru jika fetch blob gagal (misal CORS)
+        console.warn('Download fetch gagal/timeout, fallback ke tab baru:', error.message);
+        // Fallback cepat: buka di tab baru tanpa menunggu lama
         window.open(url, '_blank');
-        addLogEntry('System', 'Menggunakan metode download alternatif (tab baru)');
+        addLogEntry('System', `Download dibuka di tab baru (${filename})`);
     } finally {
-        if (button) {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
+        button.innerHTML = originalText;
+        button.disabled = false;
     }
 }
 
