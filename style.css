@@ -1,0 +1,782 @@
+/* ============================================================
+   SUPERTIK - PRODUCTION GRADE MOBILE UI
+   Zero layout shift | Zero zoom | 60fps | Low GPU impact
+   ============================================================ */
+
+:root {
+    --bg-primary: #0a0a12;
+    --bg-secondary: #10101a;
+    --accent-primary: #00d9ff;
+    --accent-secondary: #8a2be2;
+    --accent-tertiary: #ff2d75;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0c0;
+    --card-bg: rgba(16, 16, 26, 0.85);
+    --card-border: rgba(0, 217, 255, 0.15);
+    --success: #00ff9d;
+    --warning: #ffb800;
+    --error: #ff4757;
+    --glow-primary: 0 0 20px rgba(0, 217, 255, 0.2);
+    --glow-secondary: 0 0 20px rgba(138, 43, 226, 0.15);
+}
+
+/* ============================================================
+   1. GLOBAL RESET & ANTI-OVERFLOW LOCKDOWN
+   ============================================================ */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    /* Modern clip + fallback hidden */
+    overflow-x: hidden;
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100vw;
+    /* Prevent pull-to-refresh on supported browsers */
+    overscroll-behavior: none;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-x: clip;
+    position: relative;
+    width: 100%;
+    max-width: 100vw;
+    /* Restrict gestures to vertical scroll only */
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fallback for browsers not supporting clip */
+@supports not (overflow-x: clip) {
+    html, body {
+        overflow-x: hidden;
+    }
+}
+
+/* ============================================================
+   2. BACKGROUND LAYER - GPU FRIENDLY, NO REPAINT
+   ============================================================ */
+.bg-geometric {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+    /* Promote to own composite layer without expensive will-change */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    /* Blur only on desktop, reduced on mobile */
+    filter: blur(50px);
+    max-width: 100vw;
+    max-height: 100vh;
+    /* No animation on mobile by default */
+    animation: none;
+    will-change: auto;
+    transform: translateZ(0);
+}
+
+/* Desktop only animations */
+@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
+    .shape {
+        animation: float 30s infinite linear;
+        will-change: transform;
+    }
+}
+
+.shape-1 {
+    width: min(500px, 70vw);
+    height: min(500px, 70vw);
+    background: radial-gradient(circle at 30% 30%, var(--accent-primary), var(--accent-secondary));
+    top: -10vh;
+    left: -10vw;
+}
+
+.shape-2 {
+    width: min(400px, 60vw);
+    height: min(400px, 60vw);
+    background: radial-gradient(circle at 70% 70%, var(--accent-tertiary), var(--accent-secondary));
+    bottom: -10vh;
+    right: -10vw;
+}
+
+.shape-3 {
+    width: min(300px, 50vw);
+    height: min(300px, 50vw);
+    background: radial-gradient(circle at 50% 50%, var(--accent-primary), var(--accent-tertiary));
+    top: 60%;
+    right: 5%;
+}
+
+.grid-lines {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(0, 217, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 217, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    opacity: 0.15;
+    pointer-events: none;
+    transform: translateZ(0);
+}
+
+/* ============================================================
+   3. MAIN LAYOUT - STRICT WIDTH CONTROL
+   ============================================================ */
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 0.7fr;
+    gap: 25px;
+    min-height: 100vh;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: clip;
+    container-type: inline-size;
+}
+
+/* ============================================================
+   4. CARDS - CONDITIONAL BACKDROP FOR PERFORMANCE
+   ============================================================ */
+.card {
+    background: var(--card-bg);
+    /* Blur only on desktop */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #10101a; /* fallback solid */
+    transition: box-shadow 0.2s ease;
+    transform: translateZ(0);
+}
+
+@media (min-width: 769px) {
+    .card {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    transform: translateZ(0);
+}
+
+/* ============================================================
+   5. MAIN SECTION - STABLE MIN-HEIGHT
+   ============================================================ */
+.main-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 480px; /* prevents layout shift */
+}
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: clamp(1.5rem, 6vw, 1.8rem);
+    font-weight: 800;
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.logo-icon {
+    font-size: 2rem;
+    color: var(--accent-primary);
+}
+
+.version-badge {
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.hero-title {
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    line-height: 1.15;
+    font-weight: 800;
+    margin-bottom: 5px;
+    background: linear-gradient(to right, #fff, var(--accent-primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-subtitle {
+    color: var(--text-secondary);
+    font-size: clamp(0.9rem, 3.5vw, 1rem);
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+/* ============================================================
+   6. INPUT - ZOOM PREVENTION (16px)
+   ============================================================ */
+.input-container {
+    margin-top: 10px;
+}
+
+.input-wrapper {
+    display: flex;
+    background: rgba(10, 10, 18, 0.9);
+    border-radius: 20px;
+    border: 2px solid rgba(0, 217, 255, 0.2);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--accent-primary);
+}
+
+.input-icon {
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 217, 255, 0.05);
+    color: var(--accent-primary);
+    font-size: 1.2rem;
+}
+
+#urlInput {
+    flex: 1;
+    padding: 18px 15px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px; /* mandatory for iOS */
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    min-width: 0;
+}
+
+#urlInput::placeholder {
+    color: rgba(160, 160, 192, 0.5);
+    font-size: 16px;
+}
+
+/* ============================================================
+   7. BUTTONS - TRANSFORM-BASED INTERACTIONS
+   ============================================================ */
+.btn-hexagon {
+    margin-top: 20px;
+    position: relative;
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    border-radius: 18px;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: var(--glow-primary);
+    overflow: hidden;
+    z-index: 1;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    transition: none;
+    transform: translateZ(0);
+}
+
+@media (min-width: 769px) {
+    .btn-hexagon {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-hexagon:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 217, 255, 0.4);
+    }
+}
+
+.btn-hexagon:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+
+.btn-hexagon:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: var(--glow-primary) !important;
+}
+
+.btn-hexagon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s;
+    transform: translateZ(0);
+}
+
+.btn-hexagon:hover::before {
+    opacity: 1;
+}
+
+/* ============================================================
+   8. RESULT PANEL - SMOOTH APPEARANCE
+   ============================================================ */
+.result-panel {
+    margin-top: 25px;
+    display: none;
+    animation: fadeInUp 0.3s ease;
+    width: 100%;
+}
+
+.video-card-modern {
+    background: rgba(20, 20, 30, 0.8);
+    border-radius: 24px;
+    padding: 20px;
+    border: 1px solid rgba(0, 217, 255, 0.1);
+    width: 100%;
+}
+
+.video-content {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 20px;
+    align-items: center;
+}
+
+.thumbnail-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transform: translateZ(0);
+}
+
+.thumbnail-container img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.video-title {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    font-weight: 700;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.download-options {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-download-option {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: none;
+    transform: translateZ(0);
+}
+
+@media (min-width: 769px) {
+    .btn-download-option {
+        font-size: 15px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-download-option:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.btn-download-option:active {
+    transform: scale(0.97);
+}
+
+.btn-hd {
+    background: linear-gradient(135deg, var(--accent-primary), #0066ff);
+    color: white;
+}
+
+.btn-audio {
+    background: linear-gradient(135deg, var(--accent-secondary), #b300ff);
+    color: white;
+}
+
+/* ============================================================
+   9. SIDEBAR
+   ============================================================ */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.stats-widget {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.stat-item {
+    background: rgba(20, 20, 30, 0.7);
+    border-radius: 18px;
+    padding: 18px 10px;
+    text-align: center;
+    border: 1px solid rgba(0, 217, 255, 0.1);
+}
+
+.stat-value {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    font-weight: 800;
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.activity-widget {
+    height: 260px;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 10px;
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--success);
+    font-size: 0.75rem;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.activity-log {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 0.85rem;
+}
+
+.log-time {
+    font-family: monospace;
+    color: var(--accent-primary);
+    min-width: 65px;
+}
+
+.features-widget {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    background: rgba(0, 217, 255, 0.05);
+    border-radius: 18px;
+}
+
+.feature-icon {
+    font-size: 1.8rem;
+    color: var(--accent-primary);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+}
+
+/* ============================================================
+   10. LOADER - TRANSFORM-BASED ANIMATION (NO WIDTH)
+   ============================================================ */
+.loader {
+    margin-top: 20px;
+    display: none;
+}
+
+.loader-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.loader-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    width: 100%;
+    transform-origin: left;
+    animation: loadingTransform 1.2s infinite ease-in-out;
+    transform: translateZ(0);
+}
+
+@keyframes loadingTransform {
+    0% { transform: scaleX(0); }
+    50% { transform: scaleX(0.7); }
+    100% { transform: scaleX(1); }
+}
+
+.loader-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   11. ERROR MESSAGE
+   ============================================================ */
+.error-message {
+    margin-top: 15px;
+    padding: 14px;
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    border-radius: 12px;
+    color: var(--error);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+}
+
+/* ============================================================
+   12. ANIMATIONS (LOW IMPACT)
+   ============================================================ */
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(15px, 15px) rotate(45deg); }
+    50% { transform: translate(0, 25px) rotate(90deg); }
+    75% { transform: translate(-15px, 15px) rotate(135deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   13. RESPONSIVE BREAKPOINTS - ABSOLUTE NO OVERFLOW
+   ============================================================ */
+@container (max-width: 1100px) {
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: 15px;
+        gap: 20px;
+    }
+    .card {
+        padding: 20px;
+    }
+    .main-section {
+        min-height: 440px;
+    }
+    .video-content {
+        grid-template-columns: 1fr;
+    }
+    .thumbnail-container img {
+        height: auto;
+        max-height: 220px;
+    }
+    .download-options {
+        flex-direction: column;
+    }
+    /* Disable heavy blur on mobile */
+    .shape {
+        filter: blur(30px);
+        opacity: 0.07;
+    }
+    /* Disable backdrop blur on mobile */
+    .card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    .btn-hexagon {
+        padding: 16px;
+        font-size: 15px;
+    }
+    .input-wrapper {
+        flex-direction: column;
+    }
+    .input-icon {
+        padding: 12px;
+    }
+}
+
+/* ============================================================
+   14. FINAL TOUCH FIXES
+   ============================================================ */
+/* Ensure all interactive elements have font >= 16px */
+input, button, textarea, select {
+    font-size: 16px;
+}
+
+/* Fix for fixed positioning when virtual keyboard appears */
+@media (max-height: 500px) {
+    .bg-geometric {
+        position: absolute;
+    }
+}
+
+/* Prevent layer explosion */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Disable animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .shape {
+        animation: none;
+    }
+    .loader-fill {
+        animation: none;
+        transform: scaleX(0.5);
+    }
+}
+
+/* Ensure images/videos never overflow */
+img, svg, video, canvas, iframe {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Final overflow guarantee */
+.app-container,
+.main-section,
+.card,
+.result-panel {
+    overflow-x: visible;
+    max-width: 100%;
+}
