@@ -1,19 +1,14 @@
-// config.js - Konfigurasi endpoint API dan pengaturan aplikasi
+// config.js - Konfigurasi aplikasi (TikWM API langsung)
 const CONFIG = {
-    // Endpoint API download (handler Next.js Anda)
-    API_ENDPOINT: '/api/download',
+    // Endpoint TikWM API (public)
+    API_ENDPOINT: 'https://www.tikwm.com/api/',
     
-    // Batas waktu request dalam milidetik (30 detik)
+    // Batas waktu request (30 detik)
     REQUEST_TIMEOUT: 30000,
     
-    // Opsi fetch default
-    FETCH_OPTIONS: {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    }
+    // Opsi fetch (TikWM menggunakan GET)
+    FETCH_METHOD: 'GET'
 };
 
-// Ekspos ke global scope
+// Ekspos ke global
 window.APP_CONFIG = CONFIG;
