@@ -144,22 +144,39 @@ function renderVideoData(data) {
     elements.titleTxt.textContent = data.title || 'Video TikTok';
     elements.authorTxt.textContent = data.author?.nickname || '@user';
     
-    // Set up download buttons
-    elements.btnDownloadNoWm.onclick = () => downloadFile(data.play || data.wmplay || data.hdplay, sanitizeFilename(data.title || 'tiktok_video') + '.mp4');
-    elements.btnDownloadAudio.onclick = () => downloadFile(data.music, sanitizeFilename(data.title || 'tiktok_audio') + '.mp3');
+    // FIX: Bind event dengan fungsi wrapper yang menerima event
+    elements.btnDownloadNoWm.onclick = (e) => {
+        e.preventDefault(); // Cegah zoom / default action
+        downloadFile(data.play || data.wmplay || data.hdplay, sanitizeFilename(data.title || 'tiktok_video') + '.mp4', e);
+    };
+    
+    elements.btnDownloadAudio.onclick = (e) => {
+        e.preventDefault();
+        downloadFile(data.music, sanitizeFilename(data.title || 'tiktok_audio') + '.mp3', e);
+    };
 }
 
-// Download file function (direct download with filename)
-async function downloadFile(url, filename) {
+// FIX: Tambahkan parameter event dan preventDefault di awal
+async function downloadFile(url, filename, event) {
+    // Cegah perilaku default (zoom, navigasi, dll)
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     if (!url) {
         showError('Tidak ada URL download tersedia');
         return;
     }
     
-    const button = event.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
-    button.disabled = true;
+    // FIX: Dapatkan tombol dari event.target
+    const button = event ? event.target.closest('button') : null;
+    const originalText = button ? button.innerHTML : '';
+    
+    if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
+        button.disabled = true;
+    }
     
     addLogEntry('Download', `Memulai download: ${filename}`);
     
@@ -187,8 +204,10 @@ async function downloadFile(url, filename) {
         window.open(url, '_blank');
         addLogEntry('System', 'Menggunakan metode download alternatif (tab baru)');
     } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
+        if (button) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
     }
 }
 
