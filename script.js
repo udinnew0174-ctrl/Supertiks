@@ -1,4 +1,4 @@
-// script.js - Main Application Logic
+// script.js - Main Application Logic (khusus API DownrScraper)
 
 // DOM Elements
 const elements = {
@@ -25,7 +25,7 @@ let visitorCount = 2400;
 let downloadCount = 18700;
 let apiSpeed = 24;
 
-// Initialize the app
+// Inisialisasi aplikasi
 function initApp() {
     addLogEntry('System', 'SuperTik Pro v4.0 initialized');
     addLogEntry('System', 'API servers connected');
@@ -42,7 +42,7 @@ function initApp() {
     elements.input.focus();
 }
 
-// Handle download request
+// Menangani permintaan download
 async function handleDownloadRequest() {
     const url = elements.input.value.trim();
     
@@ -81,7 +81,7 @@ async function handleDownloadRequest() {
     }
 }
 
-// Fetch TikTok data from our API
+// Memanggil API handler Next.js (DownrScraper)
 async function fetchTikTokData(url) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
@@ -102,7 +102,7 @@ async function fetchTikTokData(url) {
         
         const data = await response.json();
         
-        // Cek rate limit info dari response
+        // Tampilkan info sisa kuota jika ada
         if (data.remaining !== undefined) {
             addLogEntry('System', `Sisa kuota hari ini: ${data.remaining} request`);
         }
@@ -119,45 +119,46 @@ async function fetchTikTokData(url) {
     }
 }
 
-// Render video data to UI
+// Render data video ke UI
 function renderVideoData(data) {
-    // Cari thumbnail: biasanya dari media pertama yang image atau dari properti cover (jika ada)
-    const videoMedia = data.medias.find(m => m.type === 'video' || m.url.includes('.mp4'));
-    const audioMedia = data.medias.find(m => m.type === 'audio' || m.url.includes('.mp3'));
+    // Cari media video dan audio dari array 'medias'
+    const videoMedia = data.medias?.find(m => m.type === 'video' || m.url?.includes('.mp4'));
+    const audioMedia = data.medias?.find(m => m.type === 'audio' || m.url?.includes('.mp3'));
+
+    // Thumbnail: karena API DownrScraper mungkin tidak menyediakan cover,
+    // gunakan placeholder. (Anda bisa tambahkan logic jika API mengembalikan thumbnail)
+    elements.thumbImg.src = 'https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?w=800&auto=format';
     
-    // Thumbnail: bisa dari data.thumbnail jika disediakan API, atau fallback
-    const thumbUrl = data.thumbnail || (videoMedia ? videoMedia.url : 'https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
-    
-    elements.thumbImg.src = thumbUrl;
     elements.titleTxt.textContent = data.title || 'Video TikTok';
-    elements.authorTxt.textContent = data.author || '@user';
-    
-    // Simpan URL media untuk download
+    elements.authorTxt.textContent = '@tiktok_user'; // Bisa disesuaikan jika API mengembalikan author
+
+    // Simpan URL untuk proses download
     currentVideoData = {
         ...data,
-        videoUrl: videoMedia ? videoMedia.url : null,
-        audioUrl: audioMedia ? audioMedia.url : (data.medias[0]?.url || null)
+        videoUrl: videoMedia?.url || null,
+        audioUrl: audioMedia?.url || null
     };
-    
-    // Setup download buttons
+
+    // Setup tombol download video (HD No Watermark)
     elements.btnDownloadNoWm.onclick = () => {
         if (currentVideoData.videoUrl) {
-            downloadFile(currentVideoData.videoUrl, sanitizeFilename(data.title || 'tiktok_video') + '.mp4');
+            downloadFile(currentVideoData.videoUrl, sanitizeFilename(data.title || 'video') + '.mp4');
         } else {
-            showError('URL video tidak tersedia');
+            showError('URL video tidak ditemukan');
         }
     };
-    
+
+    // Setup tombol download audio
     elements.btnDownloadAudio.onclick = () => {
         if (currentVideoData.audioUrl) {
-            downloadFile(currentVideoData.audioUrl, sanitizeFilename(data.title || 'tiktok_audio') + '.mp3');
+            downloadFile(currentVideoData.audioUrl, sanitizeFilename(data.title || 'audio') + '.mp3');
         } else {
-            showError('URL audio tidak tersedia');
+            showError('URL audio tidak ditemukan');
         }
     };
 }
 
-// Download file function (langsung download, tanpa buka tab baru)
+// Fungsi download file (langsung, tanpa buka tab baru)
 async function downloadFile(url, filename) {
     if (!url) {
         showError('Tidak ada URL download tersedia');
@@ -186,13 +187,13 @@ async function downloadFile(url, filename) {
         a.click();
         document.body.removeChild(a);
         
-        // Bersihkan object URL
+        // Bersihkan object URL setelah beberapa saat
         setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
         
         addLogEntry('Success', `Berhasil mendownload: ${filename}`);
     } catch (error) {
         console.error('Download error:', error);
-        // Fallback: buka di tab baru (opsional, jika diperlukan)
+        // Fallback terpaksa: buka di tab baru (jika fetch blob gagal karena CORS)
         window.open(url, '_blank');
         addLogEntry('System', 'Menggunakan metode download alternatif (tab baru)');
     } finally {
@@ -201,12 +202,12 @@ async function downloadFile(url, filename) {
     }
 }
 
-// Helper: membersihkan string untuk nama file
+// Membersihkan string untuk nama file
 function sanitizeFilename(str) {
     return str.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 50);
 }
 
-// UI Helper Functions
+// Helper UI
 function showLoader(show) {
     elements.loader.style.display = show ? 'block' : 'none';
     elements.btnProcess.disabled = show;
@@ -234,7 +235,7 @@ function isValidTikTokUrl(url) {
     return tiktokPattern.test(url);
 }
 
-// Activity Log Functions
+// Log Aktivitas
 function addLogEntry(type, message) {
     const time = new Date().toLocaleTimeString('id-ID', { 
         hour: '2-digit', 
@@ -276,7 +277,7 @@ function addRandomActivityLog() {
     addLogEntry(`${activity.type} (${country})`, activity.message);
 }
 
-// Live Stats Functions
+// Statistik Live (simulasi)
 function updateLiveStats() {
     const visitorChange = Math.floor(Math.random() * 10) - 4;
     visitorCount = Math.max(2000, visitorCount + visitorChange);
@@ -303,5 +304,5 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// Initialize when DOM ready
+// Jalankan setelah DOM siap
 document.addEventListener('DOMContentLoaded', initApp);
