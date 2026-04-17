@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SuperTik - Modern TikTok Downloader</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Dynamic Background -->
+    <div class="bg-geometric">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="grid-lines"></div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Main Downloader Section -->
+        <main class="card main-section">
+            <div class="header-section">
+                <div class="logo">
+                    <i class="fas fa-bolt logo-icon"></i>
+                    <span>SuperTik</span>
+                </div>
+                <div class="version-badge">
+                    <i class="fas fa-star"></i>
+                    Syihab
+                </div>
+            </div>
+
+            <h1 class="hero-title">Download TikTok<br>Tanpa Watermark</h1>
+            <p class="hero-subtitle">
+                Ekstrak video TikTok dalam kualitas HD, audio MP3, dan metadata dengan teknologi generasi terbaru. 
+                Gratis, cepat, dan tanpa batas.
+            </p>
+
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <div class="input-icon">
+                        <i class="fas fa-paperclip"></i>
+                    </div>
+                    <input type="text" id="urlInput" class="url-input" placeholder="Tempel tautan TikTok di sini..." autocomplete="off">
+                </div>
+            </div>
+
+            <button id="btnProcess" class="btn-hexagon">
+                <i class="fas fa-bolt"></i> ANALISIS & DOWNLOAD
+            </button>
+
+            <div class="loader" id="loader">
+                <div class="loader-bar">
+                    <div class="loader-fill"></div>
+                </div>
+                <div class="loader-text">Memproses video...</div>
+            </div>
+
+            <div class="error-message" id="errorMsg">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <div id="resultArea" class="result-panel">
+                <div class="video-card-modern">
+                    <div class="video-content">
+                        <div class="thumbnail-container">
+                            <img id="thumbImg" src="" alt="Video Thumbnail">
+                            <div class="play-overlay">
+                                <div class="play-icon">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title" id="titleTxt">Judul video akan muncul di sini</div>
+                            <div class="video-author">
+                                <div class="author-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span id="authorTxt">@username</span>
+                            </div>
+                            <div class="download-options">
+                                <button class="btn-download-option btn-hd" id="btnDownloadNoWm">
+                                    <i class="fas fa-download"></i> HD NO WATERMARK
+                                </button>
+                                <button class="btn-download-option btn-audio" id="btnDownloadAudio">
+                                    <i class="fas fa-music"></i> DOWNLOAD MP3
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sidebar Widgets -->
+        <aside class="sidebar">
+            <!-- Stats Widget -->
+            <div class="card">
+                <div class="stats-widget">
+                    <div class="stat-item">
+                        <div class="stat-value" id="visitorCount">2.4K</div>
+                        <div class="stat-label">Pengguna Online</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: var(--success);">100%</div>
+                        <div class="stat-label">Server Uptime</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="downloadCount">18.7K</div>
+                        <div class="stat-label">Download Hari Ini</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="apiSpeed">24ms</div>
+                        <div class="stat-label">Kecepatan API</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Widget -->
+            <div class="card activity-widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <i class="fas fa-stream"></i> Aktivitas Live
+                    </div>
+                    <div class="live-indicator">
+                        <div class="pulse-dot"></div>
+                        LIVE
+                    </div>
+                </div>
+                <div class="activity-log" id="logContainer">
+                    <!-- Log entries will be added dynamically -->
+                </div>
+            </div>
+
+            <!-- Features Widget -->
+            <div class="features-widget">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 5px;">100% Aman & Gratis</div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Tidak ada iklan, tidak ada batasan</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Configuration -->
+    <script src="config.js"></script>
+    <!-- Main JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
